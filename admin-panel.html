@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .card-shadow {
+        box-shadow: 0 6px 20px rgba(12, 18, 24, 0.06);
+      }
+      .soft-border {
+        border: 1px solid rgba(15, 23, 42, 0.03);
+      }
+      @media (min-width: 1024px) {
+        body {
+          background: linear-gradient(270deg, #f4f7f9 0%, #f7fafc 100%);
+        }
+      }
+      .tab-active {
+        border-bottom-color: #2563eb !important;
+        color: #2563eb !important;
+      }
+      @keyframes slide-in {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slide-out {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+      .animate-slide-in {
+        animation: slide-in 0.3s ease-out;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-100 text-gray-700">
+    <div class="max-w-5xl mx-auto p-6">
+      <div class="bg-white rounded-2xl card-shadow p-8 soft-border">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-1">Admin Panel</h1>
+            <p class="text-sm text-gray-500">Manage your portfolio content</p>
+          </div>
+          <a
+            href="index.html"
+            class="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+            >Back to Portfolio</a
+          >
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-1 mb-8 border-b border-gray-200 overflow-x-auto">
+          <button
+            onclick="switchTab('profile')"
+            id="tab-profile"
+            class="px-6 py-3 font-medium border-b-2 tab-active whitespace-nowrap"
+          >
+            Profile
+          </button>
+          <button
+            onclick="switchTab('projects')"
+            id="tab-projects"
+            class="px-6 py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap"
+          >
+            Projects
+          </button>
+          <button
+            onclick="switchTab('products')"
+            id="tab-products"
+            class="px-6 py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap"
+          >
+            Products
+          </button>
+          <button
+            onclick="switchTab('data')"
+            id="tab-data"
+            class="px-6 py-3 font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap"
+          >
+            Data
+          </button>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="content-profile" class="tab-content">
+          <form id="profileForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Full Name</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Job Title</label>
+                <input
+                  type="text"
+                  id="jobTitle"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Bio</label>
+              <textarea
+                id="bio"
+                rows="3"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Avatar URL</label>
+                <input
+                  type="url"
+                  id="avatarUrl"
+                  class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="flex items-center">
+                <input
+                  type="checkbox"
+                  id="availableForWork"
+                  class="w-4 h-4 text-blue-600 rounded"
+                />
+                <span class="ml-2">Available for Work</span>
+              </label>
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-800 transition"
+            >
+              Save Profile
+            </button>
+          </form>
+        </div>
+
+        <!-- Projects Tab -->
+        <div id="content-projects" class="tab-content hidden">
+          <div class="flex justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Your Projects</h2>
+            <button
+              onclick="openProjectModal()"
+              class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+            >
+              + Add Project
+            </button>
+          </div>
+          <div id="projectsList" class="space-y-3"></div>
+        </div>
+
+        <!-- Products Tab -->
+        <div id="content-products" class="tab-content hidden">
+          <div class="flex justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Your Products</h2>
+            <button
+              onclick="openProductModal()"
+              class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+            >
+              + Add Product
+            </button>
+          </div>
+          <div id="productsList" class="space-y-3"></div>
+        </div>
+
+        <!-- Data Management Tab -->
+        <div id="content-data" class="tab-content hidden">
+          <div class="space-y-6">
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <h3 class="font-semibold mb-2 text-gray-900">Export Data</h3>
+              <p class="text-sm text-gray-600 mb-4">
+                Download all portfolio data as JSON
+              </p>
+              <button
+                onclick="exportData()"
+                class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+              >
+                Download JSON
+              </button>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <h3 class="font-semibold mb-2 text-gray-900">Import Data</h3>
+              <p class="text-sm text-gray-600 mb-4">
+                Upload JSON file to restore data
+              </p>
+              <input
+                type="file"
+                id="importFile"
+                accept=".json"
+                class="mb-3 text-sm"
+              />
+              <button
+                onclick="importData()"
+                class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+              >
+                Import JSON
+              </button>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <h3 class="font-semibold mb-2 text-gray-900">
+                GitHub Pages Setup
+              </h3>
+              <p class="text-sm text-gray-600 mb-4">
+                Steps to deploy to GitHub Pages:
+              </p>
+              <ol
+                class="text-sm space-y-2 list-decimal list-inside text-gray-700"
+              >
+                <li>
+                  Export your data and save as
+                  <code class="bg-gray-200 px-1 rounded">data.json</code>
+                </li>
+                <li>Create a GitHub repository</li>
+                <li>Upload all HTML files + data.json</li>
+                <li>Enable GitHub Pages in Settings</li>
+                <li>
+                  Visit:
+                  <code class="bg-gray-200 px-1 rounded"
+                    >username.github.io/repo-name</code
+                  >
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div
+      id="projectModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+      >
+        <h3 class="text-xl font-bold mb-4">Project Details</h3>
+        <form id="projectForm" class="space-y-4">
+          <input type="hidden" id="projectIndex" />
+          <div>
+            <label class="block text-sm font-medium mb-1">Project Name *</label>
+            <input
+              type="text"
+              id="projectName"
+              required
+              placeholder="e.g. Rectangle"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1"
+              >Short Description *</label
+            >
+            <input
+              type="text"
+              id="projectDesc"
+              required
+              placeholder="e.g. Product design, Icon design"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Client</label>
+              <input
+                type="text"
+                id="projectClient"
+                placeholder="e.g. Goven Soven"
+                class="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Company</label>
+              <input
+                type="text"
+                id="projectCompany"
+                placeholder="e.g. Rectangle Inc"
+                class="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Year</label>
+              <input
+                type="text"
+                id="projectYear"
+                placeholder="2024"
+                class="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Icon Color</label>
+              <input
+                type="text"
+                id="projectColor"
+                placeholder="#7c3aed"
+                value="#7c3aed"
+                class="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1"
+              >Full Description</label
+            >
+            <textarea
+              id="projectFullDescription"
+              rows="3"
+              placeholder="Detailed project description for the project detail page..."
+              class="w-full px-3 py-2 border rounded-lg"
+            ></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Website URL</label>
+            <input
+              type="url"
+              id="projectWebsiteUrl"
+              placeholder="https://example.com"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1"
+              >Media Files (Images/Videos)</label
+            >
+            <input
+              type="file"
+              id="projectMedia"
+              multiple
+              accept="image/*,video/mp4,video/webm"
+              class="w-full px-3 py-2 border rounded-lg text-sm"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              Upload images or videos (max 100MB per file). Format: MP4/WebM
+              untuk video
+            </p>
+            <div id="mediaPreview" class="mt-2 grid grid-cols-3 gap-2"></div>
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button
+              type="submit"
+              class="flex-1 bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800 transition"
+            >
+              Save Project
+            </button>
+            <button
+              type="button"
+              onclick="closeProjectModal()"
+              class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div
+      id="productModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+    >
+      <div class="bg-white rounded-xl p-6 max-w-md w-full">
+        <h3 class="text-xl font-bold mb-4">Product Details</h3>
+        <form id="productForm" class="space-y-4">
+          <input type="hidden" id="productIndex" />
+          <div>
+            <label class="block text-sm font-medium mb-1">Product Name</label>
+            <input
+              type="text"
+              id="productName"
+              required
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Category/Tag</label>
+            <input
+              type="text"
+              id="productTag"
+              placeholder="FRAMER TEMPLATE"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1"
+              >Icon Color (hex)</label
+            >
+            <input
+              type="text"
+              id="productColor"
+              placeholder="#6366f1"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Link</label>
+            <input
+              type="url"
+              id="productLink"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="submit"
+              class="flex-1 bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800 transition"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onclick="closeProductModal()"
+              class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+  </body>
+</html>

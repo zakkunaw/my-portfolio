@@ -1,0 +1,71 @@
+{
+  "profile": {
+    "fullName": "Your Full Name",
+    "jobTitle": "Product Designer & Creative Developer",
+    "bio": "I'm a product designer passionate about crafting delightful user experiences. With a keen eye for detail and a love for clean aesthetics, I transform ideas into beautiful, functional designs.",
+    "email": "your.email@example.com",
+    "avatarUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=YourName",
+    "availableForWork": true,
+    "socialLinks": {
+      "twitter": "https://twitter.com/yourusername",
+      "instagram": "https://instagram.com/yourusername",
+      "dribbble": "https://dribbble.com/yourusername",
+      "linkedin": "https://linkedin.com/in/yourusername"
+    },
+    "footerText": "Built with ❤️ and Tailwind CSS"
+  },
+  "projects": [
+    {
+      "name": "Rectangle",
+      "description": "Product design, Icon design",
+      "color": "#7c3aed",
+      "link": "project-detail.html"
+    },
+    {
+      "name": "Morva labs",
+      "description": "Visual design, Branding",
+      "color": "#111827",
+      "link": "#"
+    },
+    {
+      "name": "Simply",
+      "description": "Landing page, Illustration design",
+      "color": "#fb923c",
+      "link": "#"
+    },
+    {
+      "name": "Glassdoor",
+      "description": "Icon design, Illustration design",
+      "color": "#38bdf8",
+      "link": "#"
+    }
+  ],
+  "products": [
+    {
+      "name": "Goven",
+      "tag": "FRAMER TEMPLATE",
+      "color": "#6366f1",
+      "link": "#"
+    },
+    {
+      "name": "Upshift",
+      "tag": "WEB DESIGN COLLECTIONS",
+      "color": "#84cc16",
+      "link": "#"
+    },
+    {
+      "name": "Subtle Folio",
+      "tag": "FRAMER TEMPLATE",
+      "color": "#71717a",
+      "link": "#"
+    }
+  ],
+  "featuredProjects": [
+    {
+      "name": "Rectangle",
+      "description": "Product design, Icon design",
+      "color": "#7c3aed",
+      "link": "project-detail.html"
+    }
+  ]
+}
