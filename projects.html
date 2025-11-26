@@ -229,16 +229,23 @@
             const hasMedia = project.media && project.media.length > 0;
             const firstMedia = hasMedia ? project.media[0] : null;
 
+            // Get image URL (Google Drive or local)
+            const imageUrl = hasMedia && firstMedia.type === "image"
+              ? (firstMedia.source === 'googledrive' 
+                  ? (firstMedia.thumbnailLink || firstMedia.webContentLink)
+                  : firstMedia.data)
+              : null;
+
             return `
           <a
             href="project-detail.html?id=${project.id}"
             class="flex items-center gap-4 bg-white p-4 rounded-lg soft-shadow hover:shadow-lg transition block"
           >
             ${
-              hasMedia && firstMedia.type === "image"
+              imageUrl
                 ? `
               <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                <img src="${firstMedia.data}" alt="${project.name}" class="w-full h-full object-cover" />
+                <img src="${imageUrl}" alt="${project.name}" class="w-full h-full object-cover" />
               </div>
             `
                 : `

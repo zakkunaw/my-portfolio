@@ -345,26 +345,46 @@
             mediaItem.className =
               "bg-gray-50 rounded-xl overflow-hidden soft-border soft-shadow";
 
+            // Determine media source (Google Drive or local base64)
+            const mediaUrl = media.source === 'googledrive' 
+              ? (media.type === 'image' ? media.webContentLink : media.webViewLink)
+              : media.data;
+            
+            const thumbnailUrl = media.source === 'googledrive' && media.thumbnailLink
+              ? media.thumbnailLink
+              : mediaUrl;
+
             if (media.type === "image") {
+              const imgSrc = media.source === 'googledrive' ? thumbnailUrl : mediaUrl;
               mediaItem.innerHTML = `
                 <img 
-                  src="${media.data}" 
+                  src="${imgSrc}" 
                   alt="${media.name || "Project image"}"
                   class="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition"
-                  onclick="openMediaModal('${media.data}', 'image')"
+                  onclick="openMediaModal('${mediaUrl}', 'image')"
                 />
               `;
             } else if (media.type === "video") {
-              mediaItem.innerHTML = `
-                <video 
-                  controls 
-                  class="w-full h-auto rounded-xl"
-                  preload="metadata"
-                >
-                  <source src="${media.data}" type="video/mp4">
-                  Your browser does not support the video tag.
-                </video>
-              `;
+              if (media.source === 'googledrive') {
+                mediaItem.innerHTML = `
+                  <iframe
+                    src="https://drive.google.com/file/d/${media.driveId}/preview"
+                    class="w-full h-64 rounded-xl"
+                    allow="autoplay"
+                  ></iframe>
+                `;
+              } else {
+                mediaItem.innerHTML = `
+                  <video 
+                    controls 
+                    class="w-full h-auto rounded-xl"
+                    preload="metadata"
+                  >
+                    <source src="${media.data}" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                `;
+              }
             }
 
             mediaGrid.appendChild(mediaItem);

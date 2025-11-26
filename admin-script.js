@@ -131,6 +131,11 @@ function switchTab(tabName) {
   const activeTab = document.getElementById(`tab-${tabName}`);
   activeTab.classList.add('tab-active', 'border-blue-600', 'text-blue-600');
   activeTab.classList.remove('border-transparent', 'text-gray-500');
+  
+  // Load settings when switching to settings tab
+  if (tabName === 'settings') {
+    loadSettings();
+  }
 }
 
 // Profile management
@@ -322,18 +327,40 @@ document.getElementById('projectForm')?.addEventListener('submit', async functio
       }
       
       // Process files
-      submitBtn.textContent = 'Processing files...';
+      submitBtn.textContent = 'Uploading files...';
+      
+      // Check if Google Drive is configured
+      const gdConfig = getGoogleDriveConfig();
+      const useGoogleDrive = gdConfig.apiKey && gdConfig.clientId && isGoogleDriveReady;
+      
       for (const file of mediaFiles) {
         try {
-          const base64 = await fileToBase64(file);
-          mediaArray.push({
-            type: file.type.startsWith('image/') ? 'image' : 'video',
-            data: base64,
-            name: file.name
-          });
+          if (useGoogleDrive) {
+            // Upload to Google Drive
+            submitBtn.textContent = `Uploading to Google Drive (${mediaArray.length + 1}/${mediaFiles.length})...`;
+            const driveFile = await uploadToGoogleDrive(file, projectId);
+            mediaArray.push({
+              type: file.type.startsWith('image/') ? 'image' : 'video',
+              name: file.name,
+              driveId: driveFile.id,
+              webViewLink: driveFile.webViewLink,
+              webContentLink: driveFile.webContentLink,
+              thumbnailLink: driveFile.thumbnailLink,
+              source: 'googledrive'
+            });
+          } else {
+            // Fallback to base64 (IndexedDB)
+            const base64 = await fileToBase64(file);
+            mediaArray.push({
+              type: file.type.startsWith('image/') ? 'image' : 'video',
+              data: base64,
+              name: file.name,
+              source: 'indexeddb'
+            });
+          }
         } catch (err) {
           console.error('Error processing file:', file.name, err);
-          alert(`Gagal memproses file "${file.name}". Coba lagi.`);
+          showToast(`Gagal upload "${file.name}": ${err.message}`, 'error');
           submitBtn.disabled = false;
           submitBtn.textContent = originalText;
           return;
@@ -344,16 +371,20 @@ document.getElementById('projectForm')?.addEventListener('submit', async functio
       mediaArray.push(...data.projects[parseInt(index)].media);
     }
     
-    // Save media to IndexedDB if exists
+    // Save media to IndexedDB if not using Google Drive
     if (mediaArray.length > 0) {
-      try {
-        await saveMediaToDB(projectId, mediaArray);
-      } catch (dbError) {
-        console.error('Error saving media to IndexedDB:', dbError);
-        showToast('Error saving media: ' + dbError.message, 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
-        return;
+      const hasLocalMedia = mediaArray.some(m => m.source === 'indexeddb');
+      if (hasLocalMedia) {
+        try {
+          const localMedia = mediaArray.filter(m => m.source === 'indexeddb');
+          await saveMediaToDB(projectId, localMedia);
+        } catch (dbError) {
+          console.error('Error saving media to IndexedDB:', dbError);
+          showToast('Error saving media: ' + dbError.message, 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+          return;
+        }
       }
     }
     
@@ -564,6 +595,113 @@ function loadProjectMedia(projectId) {
   return [];
 }
 
+// Google Drive Settings
+document.getElementById('googleDriveForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const apiKey = document.getElementById('googleApiKey').value.trim();
+  const clientId = document.getElementById('googleClientId').value.trim();
+  
+  if (!apiKey || !clientId) {
+    showToast('Please fill in both API Key and Client ID', 'error');
+    return;
+  }
+  
+  const config = {
+    apiKey: apiKey,
+    clientId: clientId,
+    folderId: GOOGLE_DRIVE_CONFIG.folderId || ''
+  };
+  
+  saveGoogleDriveConfig(config);
+  showToast('Google Drive configuration saved!', 'success');
+});
+
+// Test Google Drive connection
+async function testGoogleDrive() {
+  const apiKey = document.getElementById('googleApiKey').value.trim();
+  const clientId = document.getElementById('googleClientId').value.trim();
+  const statusDiv = document.getElementById('googleDriveStatus');
+  
+  if (!apiKey || !clientId) {
+    statusDiv.className = 'mt-3 p-3 rounded-lg bg-red-50 border border-red-200';
+    statusDiv.innerHTML = '<p class="text-sm text-red-700">❌ Please fill in API Key and Client ID</p>';
+    statusDiv.classList.remove('hidden');
+    return;
+  }
+  
+  statusDiv.className = 'mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200';
+  statusDiv.innerHTML = '<p class="text-sm text-blue-700">⏳ Testing connection...</p>';
+  statusDiv.classList.remove('hidden');
+  
+  try {
+    await loadGoogleDriveAPI();
+    const success = await initGoogleDrive(apiKey, clientId);
+    
+    if (success) {
+      statusDiv.className = 'mt-3 p-3 rounded-lg bg-green-50 border border-green-200';
+      statusDiv.innerHTML = '<p class="text-sm text-green-700">✓ Connected to Google Drive successfully!</p>';
+      
+      // Save config
+      const config = { apiKey, clientId, folderId: GOOGLE_DRIVE_CONFIG.folderId || '' };
+      saveGoogleDriveConfig(config);
+    } else {
+      throw new Error('Failed to initialize Google Drive');
+    }
+  } catch (error) {
+    statusDiv.className = 'mt-3 p-3 rounded-lg bg-red-50 border border-red-200';
+    statusDiv.innerHTML = `<p class="text-sm text-red-700">❌ Connection failed: ${error.message}</p>`;
+  }
+}
+
+// Show Google Drive setup guide
+function showGoogleDriveGuide(e) {
+  e.preventDefault();
+  const guide = `
+📋 Cara Setup Google Drive API:
+
+1. Buka Google Cloud Console:
+   https://console.cloud.google.com/
+
+2. Create New Project atau pilih project existing
+
+3. Enable Google Drive API:
+   - Cari "Google Drive API" di search
+   - Klik "Enable"
+
+4. Create API Key:
+   - Pergi ke "Credentials"
+   - Klik "Create Credentials" → "API Key"
+   - Copy API Key yang muncul
+
+5. Create OAuth 2.0 Client ID:
+   - Klik "Create Credentials" → "OAuth client ID"
+   - Pilih "Web application"
+   - Authorized JavaScript origins: http://localhost atau domain kamu
+   - Authorized redirect URIs: http://localhost/oauth2callback
+   - Copy Client ID
+
+6. Configure OAuth Consent Screen:
+   - Setup consent screen (External)
+   - Tambahkan scope: ../auth/drive.file
+
+7. Paste API Key dan Client ID ke form di atas
+   
+8. Test connection untuk verify setup
+
+⚠️ Note: Untuk production, ganti localhost dengan domain asli kamu
+  `;
+  
+  alert(guide);
+}
+
+// Load settings on tab switch
+function loadSettings() {
+  const config = getGoogleDriveConfig();
+  document.getElementById('googleApiKey').value = config.apiKey || '';
+  document.getElementById('googleClientId').value = config.clientId || '';
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', async function() {
   try {
@@ -574,7 +712,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     showToast('Warning: Large file storage may not work', 'error');
   }
   
+  // Try to initialize Google Drive if config exists
+  const gdConfig = getGoogleDriveConfig();
+  if (gdConfig.apiKey && gdConfig.clientId) {
+    try {
+      await loadGoogleDriveAPI();
+      await initGoogleDrive(gdConfig.apiKey, gdConfig.clientId);
+      console.log('Google Drive initialized successfully');
+    } catch (error) {
+      console.warn('Google Drive not available:', error);
+    }
+  }
+  
   loadProfile();
   await loadProjects();
   loadProducts();
+  loadSettings();
 });
